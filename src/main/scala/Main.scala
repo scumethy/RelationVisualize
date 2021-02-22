@@ -4,12 +4,11 @@ import scalafx.Includes._
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.geometry.Orientation
-import scalafx.geometry.Pos.Center
 import scalafx.scene.Scene
 import scalafx.scene.control.Alert.AlertType
-import scalafx.scene.control.{Alert, Button, Label, TableColumn, TableView, TextField}
+import scalafx.scene.control.{Alert, Button, Label, TextField}
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.{BorderPane, FlowPane, HBox, VBox}
+import scalafx.scene.layout.{BorderPane, FlowPane, HBox}
 import scalafx.scene.shape.Line
 
 class RelationMatrix(numOfRows: Int, numOfCols: Int) {
@@ -45,74 +44,81 @@ object Main extends JFXApp {
                 this.vgap = 20
                 val setA = new TextField() {
                     id = "set-A-field"
+                    promptText = "Множество A"
                 }
                 val setB = new TextField() {
                     id = "set-B-field"
+                    promptText = "Множество B"
                 }
                 val expressionField = new TextField() {
                     id = "expression-field"
-                    text = "x + y"
+                    promptText = "Выражение отношения"
                 }
                 val printMatrixButton = new Button() {
                     id = "print-matrix-button"
                     text = "Вывести матрицу"
                 }
                 printMatrixButton.onMouseClicked = (me: MouseEvent) ⇒ {
-                    val setAVals :: setBVals :: Nil = (setA :: setB :: Nil).map(tf ⇒ {
-                        extractInputFromTextField(tf)
-                            .split(" ")
-                            .map(_.toInt)
-                    })
-                    val expression = extractInputFromTextField(expressionField).split(" ")
-
-                    val relationMatrix = createRelationMatrix(setAVals, setBVals, expression)
-                    val relationMatrixArray = relationMatrix.getRelationMatrixArray
-
-                    relationMatrixArray.foreach(r ⇒ {
-                        val relationRow = new HBox()
-                        r.foreach(el ⇒ {
-                            relationRow.children.add(
-                                new TextField() {
-                                    id = "relation-field"
-                                    text = el.toString
-                                    this.alignment = scalafx.geometry.Pos.Center
-                                }
-                            )
+                    relMatrixPane.children.clear()
+                    relGraphBox.children.clear()
+                    try {
+                        val setAVals :: setBVals :: Nil = (setA :: setB :: Nil).map(tf ⇒ {
+                            extractInputFromTextField(tf)
+                                .split(" ")
+                                .map(_.toInt)
                         })
-                        println(relationRow.children)
-                        relMatrixPane.children.add(relationRow)
-                    })
+                        val expression = extractInputFromTextField(expressionField).split(" ")
 
-                    // relation graph number columns
-                    val setAValsColumn = new FlowPane(Orientation.Vertical) {
-                        setAVals.foreach(v ⇒ {
-                            children.add(
-                                new Label(v.toString)
-                            )
-                        })
-                    }
-                    val relationsPane = new BorderPane()
-                    val setBValsColumn = new FlowPane(Orientation.Vertical) {
-                        setBVals.foreach(v ⇒ {
-                            children.add(
-                                new Label(v.toString)
-                            )
-                        })
-                    }
-                    relGraphBox.children.addAll(setAValsColumn, relationsPane, setBValsColumn)
+                        val relationMatrix = createRelationMatrix(setAVals, setBVals, expression)
+                        val relationMatrixArray = relationMatrix.getRelationMatrixArray
 
-                    // relation graph lines between numbers
-                    val (a_x, b_x) = (-40, 40)
-                    var (a_y, b_y) = (14, 14)
-                    for (i ← setAVals.indices; a = setAValsColumn.children(i)) {
-                        for (j ← setBVals.indices; b = setBValsColumn.children(j)) {
-                            if (relationMatrixArray(i)(j) == 1) {
-                                relationsPane.children.addOne(Line(a_x, a_y, b_x, b_y))
-                            }
-                            b_y += 30
+                        relationMatrixArray.foreach(r ⇒ {
+                            val relationRow = new HBox()
+                            r.foreach(el ⇒ {
+                                relationRow.children.add(
+                                    new TextField() {
+                                        id = "relation-field"
+                                        text = el.toString
+                                        this.alignment = scalafx.geometry.Pos.Center
+                                    }
+                                )
+                            })
+                            relMatrixPane.children.add(relationRow)
+                        })
+
+                        // relation graph number columns
+                        val setAValsColumn = new FlowPane(Orientation.Vertical) {
+                            setAVals.foreach(v ⇒ {
+                                children.add(
+                                    new Label(v.toString)
+                                )
+                            })
                         }
-                        b_y = 14
-                        a_y += 30
+                        val relationsPane = new BorderPane()
+                        val setBValsColumn = new FlowPane(Orientation.Vertical) {
+                            setBVals.foreach(v ⇒ {
+                                children.add(
+                                    new Label(v.toString)
+                                )
+                            })
+                        }
+                        relGraphBox.children.addAll(setAValsColumn, relationsPane, setBValsColumn)
+
+                        // relation graph lines between numbers
+                        val (a_x, b_x) = (-40, 40)
+                        var (a_y, b_y) = (14, 14)
+                        for (i ← setAVals.indices; a = setAValsColumn.children(i)) {
+                            for (j ← setBVals.indices; b = setBValsColumn.children(j)) {
+                                if (relationMatrixArray(i)(j) == 1) {
+                                    relationsPane.children.addOne(Line(a_x, a_y, b_x, b_y))
+                                }
+                                b_y += 30
+                            }
+                            b_y = 14
+                            a_y += 30
+                        }
+                    } catch {
+                        case _: Throwable ⇒ "Введите корректные значения!"
                     }
                 }
                 children.addAll(setA, setB, expressionField, printMatrixButton)
@@ -131,6 +137,15 @@ object Main extends JFXApp {
             stylesheets.add("styles.css")
         }
     }
+
+    val rulesAlert = new Alert(AlertType.Information) {
+        title = "Информация!"
+        headerText = "Правила ввода"
+        contentText =
+            "Значения множества A и B вводятся через пробел\n\n" +
+            "Выражение вводится через пробел, например:\nx + y = 10"
+    }
+    rulesAlert.showAndWait()
 
     def createRelationMatrix(setA: Array[Int], setB: Array[Int], expression: Array[String]): RelationMatrix = {
         val operation = expression(1)
