@@ -38,3 +38,16 @@
     -fx-end-margin: 10px;
     -fx-text-alignment: center;
 }
+
+#relation-field {
+    -fx-background-radius: 5;
+    -fx-padding: 3 3 3 3;
+    -fx-font-family: "Helvetica";
+    -fx-max-width: 40px;
+    -fx-font-size: 14px;
+    -fx-max-height: 40px;
+    -fx-pref-height: 40px;
+    -fx-start-margin: 15px;
+    -fx-end-margin: 15px;
+    -fx-text-alignment: center;
+}

@@ -7,24 +7,26 @@ import scalafx.geometry.Orientation
 import scalafx.geometry.Pos.Center
 import scalafx.scene.Scene
 import scalafx.scene.control.Alert.AlertType
-import scalafx.scene.control.{Alert, Button, TextField}
+import scalafx.scene.control.{Alert, Button, TableColumn, TableView, TextField}
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.{BorderPane, FlowPane, VBox}
+import scalafx.scene.layout.{BorderPane, FlowPane, HBox, VBox}
 
 class RelationMatrix(numOfRows: Int, numOfCols: Int) {
-    private var relationMatrix = Array.tabulate(numOfRows, numOfCols)((x, y) => 0)
+    private var _relationMatrix = Array.tabulate(numOfRows, numOfCols)((x, y) ⇒ 0)
 
-    val rows = relationMatrix.length
-    val columns = relationMatrix(0).length
+    def getRelationMatrixArray: Array[Array[Int]] = _relationMatrix
+
+    val rows: Int = _relationMatrix.length
+    val columns: Int = _relationMatrix(0).length
 
     def printMatrix(): Unit = {
-        for (ri ← relationMatrix.indices; r = relationMatrix(ri)) {
+        for (ri ← _relationMatrix.indices; r = _relationMatrix(ri)) {
             println(r.map(_.toString).mkString(" "))
         }
     }
 
     def setRelation(r: Int, c: Int) {
-        relationMatrix(r)(c) = 1
+        _relationMatrix(r)(c) = 1
     }
 }
 
@@ -54,14 +56,33 @@ object Main extends JFXApp {
                     id = "print-matrix-button"
                     text = "Вывести матрицу"
                 }
-                printMatrixButton.onMouseClicked = (me: MouseEvent) => {
+                printMatrixButton.onMouseClicked = (me: MouseEvent) ⇒ {
                     val relationMatrix = createRelationMatrix(setA, setB, expression)
-                    relationMatrix.printMatrix()
+
+                    relationMatrix.getRelationMatrixArray.foreach(r ⇒ {
+                        val relationRow = new HBox()
+                        r.foreach(el ⇒ {
+                            relationRow.children.add(
+                                new TextField() {
+                                    id = "relation-field"
+                                    text = el.toString
+                                    this.alignment = scalafx.geometry.Pos.Center
+                                }
+                            )
+                        })
+                        println(relationRow.children)
+                        relMatrixPane.children.add(relationRow)
+                    })
+                    println(relMatrixPane.children)
                 }
                 children.addAll(setA, setB, expression, printMatrixButton)
             }
+            var relMatrixPane = new FlowPane(Orientation.Vertical) {
+                this.setId("relMatrixPane")
+            }
 
             left = user_box
+            center = relMatrixPane
         }
 
         scene = new Scene(root, 1000, 500) {
