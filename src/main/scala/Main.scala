@@ -99,7 +99,7 @@ object Main extends JFXApp {
         val expression = extractInputFromTextField(expressionTF).split(" ")
         val operation = expression(1)
         val isCompareExp = expression.length == 5
-        val compareNumber = if (isCompareExp) expression(4)
+        val compareNumber = if (isCompareExp) expression(4).toInt
 
         var relMatrix = RelationMatrix.initMatrix(setAVals.length, setBVals.length)
         for (i ← setAVals.indices; a = setAVals(i)) {
